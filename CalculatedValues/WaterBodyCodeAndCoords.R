@@ -1,5 +1,7 @@
-
-# Assigning coordinates based on lake number
+#############################################
+# Extracting Coordinates Based on Lake Number
+# Hasan Sulaeman 
+#############################################
 
 # Libraries and Dataset ----
 library("rgdal")
@@ -10,7 +12,7 @@ coords = read.csv("sekilakecoords.csv")
 dat = read.csv("barrett.data.csv")
 dat2 = read.delim("Vance.data.txt")
 
-# Prepping the two datasets into one dataset ---- 
+# Merging Datasets ---- 
 # NOTE: The column #s were different so we couldn't use rbind
 data = data.frame(matrix(nrow=(nrow(dat)+nrow(dat2)), ncol=4))
 colnames(data) = c("lake.id", "year", "Bd.Status", "Zscore")
@@ -30,9 +32,9 @@ for (i in 1:nrow(data)) {
 }
 
 # Converting UTM to Decimal Degrees ----
-lake.coords = SpatialPoints(cbind(coords$East.UTM, coords$North.UTM), 
+LakeCoords = SpatialPoints(cbind(coords$East.UTM, coords$North.UTM), 
                             proj4string = CRS("+proj=utm  +zone=11"))
-longlat = as.data.frame(spTransform(lake.coords, CRS("+proj=longlat")))
+longlat = as.data.frame(spTransform(LakeCoords, CRS("+proj=longlat")))
 
 # Assigning Long Lat Values to Individual Data ----
 names(coords) = c("basin.name","lake.id","longitude","latitude")
@@ -53,7 +55,6 @@ for (i in 1:nrow(coords)) {
 write.csv(data, "sekidata.csv")
 
 # Plotting the map out ----
-library(rworldmap)
 sekimap = getMap(resolution = "low")
 plot(sekimap, xlim = c(-120,-115), ylim = c(30, 40), asp = 1)
 points(data$longitude, data$latitude, col = "red", cex = .6)

@@ -1,26 +1,31 @@
-# Calculating Distances to First Positive 
+#########################################
+# Calculating Distances to First Positive
+# Hasan Sulaeman
+#########################################
+# NOTE: Was excluded due to no correlation present
 
-# We'll be using the package sp, which is standard for R spatial analyses
+# Library and Data Setup ----
+## Libraries 
 library(sp)
 
-# Setting our working directory and fetching our data
+## Working Directory and Data Setup ----
 setwd("/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/Data")
-data <- read.csv('finaldata.csv')
+data = read.csv('finaldata.csv')
 data = data[675:nrow(data),]              # First positive definition changed to 1972, row 713
 
 # Let's first find the first positive and define it
-positives=subset(data, BdStatus == 1)      # Subsetting the first positives
+positives = subset(data, BdStatus == 1)      # Subsetting the first positives
 b = 1                                      # Looks like our first positive is 1907, row 1
 firstpos = positives[b,]
 
 # Convert the data frame into a spatial point data frame for all of our data
-coordinates(data) <- ~Longitude+Latitude                    # Use whatever you name your columns for lat and long
-proj4string(data) <- CRS("+proj=longlat +datum=WGS84")      # Setting the projection and datum
-coordinates(firstpos) <- ~Longitude+Latitude                # Do it for your first positive too
-proj4string(firstpos) <- CRS("+proj=longlat +datum=WGS84")   
+coordinates(data) = ~Longitude+Latitude                    # Use whatever you name your columns for lat and long
+proj4string(data) = CRS("+proj=longlat +datum=WGS84")      # Setting the projection and datum
+coordinates(firstpos) = ~Longitude+Latitude                # Do it for your first positive too
+proj4string(firstpos) = CRS("+proj=longlat +datum=WGS84")   
 
 # Calculating Distances
-mue <- read.csv('finaldata.csv')
+mue = read.csv('finaldata.csv')
 data = data[675:nrow(data),]              # First positive definition changed to 1972, row 713
 mue = subset(data, BdStatus == 1)
 mue$FirstPosDist = "tb filled"
