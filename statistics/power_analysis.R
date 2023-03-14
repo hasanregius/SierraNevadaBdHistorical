@@ -1,11 +1,21 @@
-# Costa Rica Table and Graph 
+###################################
+# Power analysis of sampling effort
+# Hasan Sulaeman
+###################################
+# NOTE: The following analysis assumes endemic prevalence detailed in Lips et al. (2009)
+
+# Dependencies ----
+#  Packages ----
 library(reshape2)
-setwd("/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/Data")
-data = read.csv("Samrawdata_final.csv", header=TRUE)
-cr = dcast(data=data,Decade~data$BdStatus,value.var='Decade',fun.aggregate=length)
-zr = dcast(data=data,year~Zscore,value.var='Zscore',fun.aggregate=length)
+
+# Dataset ----
+data = read.csv("Samrawdata_final.csv", header = TRUE)
+
+# Generating a summary decade table ----
+cr = dcast(data = data, Decade~data$BdStatus, value.var = 'Decade', fun.aggregate = length)
+zr = dcast(data = data, year~Zscore, value.var='Zscore', fun.aggregate = length)
 names(cr)[c(2,3)] = c('neg','pos')
-cr$tot=cr$neg+cr$pos
+cr$tot = cr$neg + cr$pos
 
 for (i in 1:nrow(cr)){
   cr$lower[i]=binom.test(cr$pos[i],cr$tot[i])$conf.int[1]
@@ -19,7 +29,7 @@ cr$prev = cr$pos/cr$tot*100
 cr$prob =  dbinom(0,cr$tot,.11)
 write.csv(cr,'DecadeTable.csv')
 
-# Retrieving Average Zscore
+# Retrieving Average Zscore ----
 forties=subset(data, Decade %in% c("1900s", "1910s", "1920s", "1930s"))
 forties=mean(forties$ZEScore)
 

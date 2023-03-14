@@ -3,68 +3,68 @@
 # Hasan Sulaeman
 #################################################
  
-# Library & Setup ----
-## Loading Libraries
-library(FedData)                                        # Package to get data from USGS national hydrography dataset
-library(raster)                                         # Package to get data from worldclim
-library(rgeos)                                          # Package to work with geospatial data
-library(measurements)                                   # Package to convert measurements
-library(dplyr)                                          # For tidying up
+# Dependencies ----
+#  Packages ---- 
+# Package for data retrieval from USGS national hydrography data repository
+library(FedData)
+# Package to get data from worldclim and anthropogenic data from Venter et al. (2013)                                  
+library(raster)
+# Package to work with geospatial data                                         
+library(rgeos)
+library(measurements)
+library(dplyr)
 
-## Working Directory and Main Dataset 
-setwd("/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/")
+#  Datasets ----
 data = read.csv("rawdata.csv", header=TRUE)
 
-## Loading BioClim Data
-bio = getData("worldclim", var="bio", res=10)           # We used the function getData to fetch "bio" variables from worldclim                   
-bio = bio[[c(1:19)]]                                    # We're fetching 19 bio variables for temperature and precipitation
+# Preparing bioclimactic variables from WorldClim ----
+bio = getData("worldclim", var = "bio", res = 10) 
+# 1-19 is detailed in worldclim's documentation                            
+bio = bio[[c(1:19)]]                                    
 colnames(x)=c("longitude", "latitude")
 
-## Loading Anthropogenic Data
-HFP = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/HFP2009.tif")
+# Preparing anthropogenic data downloaded from Venter et al. (2013) ----
+hfp = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/HFP2009.tif")
 crop = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Croplands2005.tif")
 built = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Built2009.tif")
 navwat = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Navwater2009.tif")
-PopDen = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/PopDensity2010.tif")
+popden = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/PopDensity2010.tif")
 road = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Roads.tif")
 rail = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Railways.tif")
 pasture = raster("/Users/hasansulaeman/Google Drive/HumFootprint/Maps/Pasture2009.tif")
-anthro = stack(HFP, crop, built, navwat, PopDen, road, rail, pasture)
+anthro = stack(hfp, crop, built, navwat, popden, road, rail, pasture)
 
-## convert latlong from decimal minutes to decimal degrees (Optional) 
-data$Latitude = measurements::conv_unit(data$Latitude, from = 'deg_dec_min', to = 'dec_deg')
-data$Longitude = measurements::conv_unit(data$Longitude, from = 'deg_dec_min', to = 'dec_deg')
-### NOTE:
-### US Federal Agencies use ESGS 4269;
-### +init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0 
+# Convert latitude and longitude from decimal minutes to decimal degrees (optional) 
+data$latitude = measurements::conv_unit(data$latitude, from = 'deg_dec_min', to = 'dec_deg')
+data$longitude = measurements::conv_unit(data$longitude, from = 'deg_dec_min', to = 'dec_deg')
+# NOTE: US Federal Agencies use ESGS 4269;
+#       +init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0 
 
-## Convert coordinates to spatial object
-x = data.frame(x=data$decimalLongitude, y=data$decimalLatitude)   # We're converting the coordinates into a spatial information
+# Convert coordinates to spatial object
+x = data.frame(x = data$decimalLongitude, y = data$decimalLatitude)   # We're converting the coordinates into a spatial information
 sp = SpatialPointsDataFrame(coords = x, data = x,
-     proj4string=CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+     proj4string = CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
 
-## Loading NHD Data
+# Preparing the National Hydrography Dataset (NHD)
 WaterBody = nhd$`_Waterbody`
-Flowline=nhd$`_Flowline`
+Flowline = nhd$`_Flowline`
 
-### CRS Matching for NHD Data
-nhd = get_nhd(template=sp, label="distance to waterbody", raw.dir="/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/Data")
-crs(nhd$`_Waterbody`)=CRS("+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0")
-crs(nhd$`_Flowline`)=CRS("+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0")
+# CRS matching for NHD extraction
+nhd = get_nhd(template = sp, label = "distance to waterbody", raw.dir = "/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/Data")
+crs(nhd$`_Waterbody`) = CRS("+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0")
+crs(nhd$`_Flowline`) = CRS("+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0")
 crs(sp) = CRS("+init=epsg:4269 +proj=longlat +ellps=GRS80 +datum=NAD83 +no_defs +towgs84=0,0,0")
 
-# Extracting climate Data from WorldClim (data excluded by reviewer request) ----
-WorldClim = (extract(bio,x))                               # We're saving the values
+# Extracting climate Data from WorldClim (data excluded per reviewer's request) ----
+WorldClim = (extract(bio,x))                               
 data = cbind.data.frame(data, WorldClim)
-# write.csv(data, "rawdata.csv"), indented for non-use
 
 # Extracting PRISM Data for Historical Climatic Data ----
 prismfinal = data.frame(matrix(nrow=nrow(data), ncol=8))
 names(prismfinal) = c("longitude", "latitude", "elevation", "year", "ppt", "tmin", "tmean", "tmax")
-
 for (i in 1:nrow(prismdata)) {
   if (prismdata[i,]$sample.year == prismdata[i,]$year) {
-    prismfinal[i,1:8] <- prismdata[i,2:9]
+    prismfinal[i,1:8] = prismdata[i,2:9]
     print(prismdata[i,2:9])}
 }
 
@@ -124,8 +124,8 @@ for (i in 1:nrow(WaterBody)) {
 ## Calulating Distances to the Closest Water Body Based on Lat Long
 ### Function to Calculate Distance Based on Spatial DF and NHD Data
 DistToWB = function (WB, sp) {
-  DistWB = apply(gDistance(spgeom1=sp, spgeom2=WB, byid=T), 2, min)
-  DistWB = DistWB*1000
+  DistWB = apply(gDistance(spgeom1 = sp, spgeom2 = WB, byid = T), 2, min)
+  DistWB = DistWB * 1000
 }
 
 ### Distance to nearest Playa
