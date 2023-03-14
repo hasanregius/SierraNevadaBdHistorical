@@ -11,10 +11,10 @@ library(reshape2)
 
 # Dataset ----
 filedir = "/Users/hasansulaeman/Dropbox/Sam's Sierra Bd work/Data/Samrawdata_final.csv"
-MuseumEverything = read.csv(filedir, header = TRUE)
+all_samples = read.csv(filedir, header = TRUE)
 
 # Data preparation & cleanup
-mu.yr = dcast(data = MuseumEverything, Year ~ `BdStatus`, value.var = 'Decade', fun.aggregate = length)
+mu.yr = dcast(data = all_samples, Year ~ `BdStatus`, value.var = 'Decade', fun.aggregate = length)
 names(mu.yr)[c(2,3)] = c('neg','pos')
 mu.yr$tot = mu.yr$neg + mu.yr$pos
 # 1900 is the first year a sample was taken in the study
@@ -42,9 +42,9 @@ model_string = 'model{
 arrival_time = jags.model(textConnection(model_string), 
                           data = list('inf'= inf, 'n'= n, 'time' = time, 'nrows' = nrows), 
                           n.chains = 3, n.adapt = 10000)
-update(ArrivalTime, 10000) # This step and the extra number of iterations is optional
-ArrivalTimeSamples = coda.samples(ArrivalTime, c('arr.time','mu'), n.iter = 20000)
+update(arrival_time, 10000) # This step and the extra number of iterations is optional
+arrival_time_samples = coda.samples(arrival_time, c('arr.time','mu'), n.iter = 20000)
 
 # Plot the results
-plot(ArrivalTimeSamples)
+plot(arrival_time_samples)
 # summary(ArrivalTimeSamples)

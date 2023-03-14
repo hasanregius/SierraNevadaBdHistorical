@@ -7,7 +7,7 @@
 #  Packages ---- 
 # Package for data retrieval from USGS national hydrography data repository
 library(FedData)
-# Package to get data from worldclim and anthropogenic data from Venter et al. (2013)                                  
+# Package to get data from worldclim and anthropogenic data from Venter et al. (2016)                                  
 library(raster)
 # Package to work with geospatial data                                         
 library(rgeos)
